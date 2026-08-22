@@ -107,7 +107,9 @@ end
 if ~c.isCurve
     % Виды каракуль раздаются поровну. Имена должны совпадать с теми, что
     % понимает CNSCRIBBLE.
-    T.subtype = balanced(rs, N, ["fourier"; "polyline"; "shape"; "walk"]);
+    T.subtype = balanced(rs, N, ...
+        ["fourier"; "polyline"; "shape"; "walk"; ...
+         "twin"; "crossed"; "nested"]);
 end
 
 % --- поворот ------------------------------------------------------------

@@ -1,39 +1,42 @@
 function F = cnFitCurve(key, img, tf, opts)
 %CNFITCURVE  Параметры кривой по картинке: регрессор плюс обратный пересчёт.
 %
-%   F = CNFITCURVE(key, img, tf)          картинка и преобразование кадра
-%   F = CNFITCURVE(..., reload = true)    перечитать сеть с диска
+%   F = CNFITCURVE(key, img, tf)
+%   F = CNFITCURVE(..., reload = true)
 %
-%   Аргумент tf — поле info.tf из CNPREPAREINPUT, то самое преобразование,
-%   которым рисунок вписывали в кадр. Без него выход регрессора остаётся
-%   набором чисел в системе координат сети и на холст его не положить.
+%   tf — поле info.tf из CNPREPAREINPUT, преобразование, которым рисунок
+%   вписывали в кадр. Без него выход регрессора остаётся набором чисел в
+%   системе координат сети.
 %
 %   Поля результата
 %   ---------------
-%   ok, message            удалось ли, и почему нет
-%   points, params         кривая и её параметры в координатах холста
-%   equation, general      уравнение в двух видах
-%   raw                    выход сети после снятия стандартизации
+%   ok, message         удалось ли, и почему нет
+%   strokes, points     кривая в координатах холста
+%   params              производные величины: полуоси, фокальный параметр, угол
+%   equation, general   уравнение в двух видах
+%   frame               центр, размер, форма и угол в координатах кадра —
+%                       начальная точка для CNREFINEFIT
+%   raw                 выход сети после снятия стандартизации
 %
 %   Две системы координат
 %   ---------------------
-%   Сеть работает в кадре: начало в левом нижнем углу, сторона равна
-%   единице, ось y вверх. Холст — свой. Между ними стоит tf, и переход
-%   туда-обратно самое вероятное место ошибки в этом файле. Признак того,
-%   что перепутано: кривая ложится зеркально или вчетверо меньше рисунка.
+%   Сеть работает в кадре: начало в левом нижнем углу, сторона единица, ось y
+%   вверх. Холст свой. Между ними tf, и переход туда-обратно — самое
+%   вероятное место ошибки. Признак, что перепутано: кривая ложится зеркально
+%   или вчетверо меньше рисунка.
 %
 %       прямое:   q = (p − tf.center)/tf.scale + 0.5 + tf.offset
-%       обратное: p = (q − 0.5 − tf.offset)*tf.scale + tf.center
+%       обратное: p = (q − 0.5 − tf.offset)·tf.scale + tf.center
 %
-%   Поворота в переходе нет, только сдвиг и равномерное растяжение. Значит
-%   угол переносится как есть, а размеры умножаются на tf.scale.
+%   Поворота в переходе нет, только сдвиг и равномерное растяжение: угол
+%   переносится как есть, размеры умножаются на tf.scale.
 %
 %   Про точность
 %   ------------
-%   Это приближение, а не ответ. Радиус окружности сеть завышает процентов
-%   на пять: поправку к раздутой дрожанием габаритной рамке она выдаёт не
-%   полностью, потому что среднеквадратичная ошибка вознаграждает
-%   осторожную оценку. Уточняет числа CNREFINEFIT.
+%   Это приближение, а не ответ. Радиус окружности сеть завышает процентов на
+%   пять: поправку к раздутой дрожанием рамке она выдаёт не полностью, потому
+%   что среднеквадратичная ошибка вознаграждает осторожную оценку. Уточняет
+%   числа CNREFINEFIT.
 %
 %   См. также CNREFINEFIT, CNCURVESHAPE, CNPREDICT, CNCANVASAPP.
 
@@ -46,20 +49,15 @@ arguments
 end
 
 F = struct("ok", false, "message", "", ...
-           "points", zeros(0,2), "params", struct(), ...
-           "equation", "", "general", "", "raw", []);
+           "strokes", {{}}, "points", zeros(0,2), "params", struct(), ...
+           "equation", "", "general", "", "frame", struct(), "raw", []);
 
 cfg = cnConfig();
 c   = cnClasses(key);
 
-if ~ismember(key, ["circle", "ellipse"])
-    F.message = sprintf("Для «%s» регрессор не обучен.", c.name);
-    return
-end
-
 model = loadRegressor(key, opts.reload);
 if isempty(model)
-    F.message = "Регрессор не обучен.";
+    F.message = sprintf("Для «%s» регрессор не обучен.", c.name);
     return
 end
 
@@ -68,41 +66,46 @@ z = predict(model.net, single(img));
 y = double(z(:)).' .* model.sigma + model.mu;
 F.raw = y;
 
+% --- разбор вектора -----------------------------------------------------
 fill     = 1 - 2*cfg.img.pad;
 ctrFrame = 0.5 + y(1:2);
 extFrame = fill * exp(y(3));
 
-switch key
-    case "circle"
-        elong = 1;
-        th    = 0;
-    case "ellipse"
-        elong = exp(y(4));
-        th    = atan2(y(end), y(end-1)) / (360 / c.symDeg);
+nShape = numel(c.shape);
+shape  = zeros(1, nShape);
+for i = 1:nShape
+    v = y(3+i);
+    if c.shape(i).scale == "log"
+        v = exp(v);
+    end
+    shape(i) = v;
 end
 
-% Габаритная рамка повёрнутой кривой не совпадает с полуосями, поэтому
-% масштаб берётся по фактическому размаху — так же, как extFrame считался
-% при построении целей. Иначе кривая выйдет систематически крупнее.
-t = linspace(0, 2*pi, 720).';
-U = [cos(t), sin(t)/elong] * [cos(th), sin(th); -sin(th), cos(th)];
-k = extFrame / max(max(U,[],1) - min(U,[],1));
+if c.hasAngle
+    th = atan2(y(end), y(end-1)) / (360 / c.symDeg);
+else
+    th = 0;
+end
 
 % --- перенос на холст ----------------------------------------------------
 off = [0 0];
 if isfield(tf, "offset"); off = tf.offset; end
 
 ctr = (ctrFrame - 0.5 - off) * tf.scale + tf.center;
-a   = k * tf.scale;
-b   = a / elong;
+ext = extFrame * tf.scale;
 
-S = cnCurveShape(key, ctr, a, b, th, nPoints = opts.nPoints);
+S = cnCurveShape(key, ctr, ext, shape, th, nPoints = opts.nPoints);
 
+F.strokes  = S.strokes;
 F.points   = S.points;
 F.params   = S.params;
 F.equation = S.equation;
 F.general  = S.general;
-F.ok       = true;
+
+% Начальная точка для подгонки отдаётся в координатах холста: подгонка
+% работает с точками рисунка, а они тоже холстовые.
+F.frame = struct("center", ctr, "ext", ext, "shape", shape, "th", th);
+F.ok    = true;
 end
 
 
@@ -110,9 +113,9 @@ end
 function model = loadRegressor(key, reload)
 %LOADREGRESSOR  Чтение регрессора с кэшированием.
 %
-%   Чтение с диска дольше самого предсказания, а на холсте ответ должен
-%   быть мгновенным. Отсутствие файла ошибкой не считается: регрессор
-%   обучен не для всех классов.
+%   Чтение с диска дольше самого предсказания, а на холсте ответ должен быть
+%   мгновенным. Отсутствие файла ошибкой не считается: регрессор обучен не
+%   для всех классов.
 
 persistent cache cacheKey
 
@@ -121,6 +124,7 @@ if reload || isempty(cacheKey) || cacheKey ~= key
     file = fullfile(cfg.paths.models, "reg_" + key + ".mat");
     if ~isfile(file)
         model = [];
+        cacheKey = "";
         return
     end
     cache    = load(file, "model").model;
