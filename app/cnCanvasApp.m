@@ -120,8 +120,10 @@ uibutton(right, Text = "Распознать", ...
 
 rowBtn = uigridlayout(right, [1 2], Padding = 0, ColumnSpacing = 8, ...
     BackgroundColor = COL.back);
-uibutton(rowBtn, Text = "Отменить", ButtonPushedFcn = @(~,~) doUndo());
-uibutton(rowBtn, Text = "Сбросить", ButtonPushedFcn = @(~,~) doReset());
+% ИЗМЕНЕНИЕ: "Отменить" -> "Отменить штрих"
+uibutton(rowBtn, Text = "Отменить штрих", ButtonPushedFcn = @(~,~) doUndo());
+% ИЗМЕНЕНИЕ: "Сбросить" -> "Очистить всё"
+uibutton(rowBtn, Text = "Очистить всё", ButtonPushedFcn = @(~,~) doReset());
 
 uilabel(right, Text = "");     % воздух перед блоком ответа
 
@@ -150,15 +152,18 @@ lblFitInfo = uilabel(gEq, Text = "", FontSize = 11, FontColor = COL.muted);
 % --- переключатели ------------------------------------------------------
 gChk = uigridlayout(right, [2 1], RowHeight = {24, 24}, ...
     RowSpacing = 2, Padding = [2 0 2 0], BackgroundColor = COL.back);
-chkRefine = uicheckbox(gChk, Text = "Уточнять подгонкой", Value = true, ...
+% ИЗМЕНЕНИЕ: "Уточнять подгонкой" -> "Уточнять по точкам"
+chkRefine = uicheckbox(gChk, Text = "Уточнять по точкам", Value = true, ...
     FontColor = COL.ink, ValueChangedFcn = @(~,~) redoFit());
-chkNet = uicheckbox(gChk, Text = "Показать оценку сети", Value = false, ...
+% ИЗМЕНЕНИЕ: "Показать оценку сети" -> "Показывать предсказание сети"
+chkNet = uicheckbox(gChk, Text = "Показывать предсказание сети", Value = false, ...
     FontColor = COL.muted, ValueChangedFcn = @(~,~) redoFit());
 
 % --- подробности --------------------------------------------------------
 gMore = uigridlayout(right, [2 1], RowHeight = {24, '1x'}, ...
     RowSpacing = 6, Padding = 0, BackgroundColor = COL.back);
-chkDebug = uicheckbox(gMore, Text = "Подробности", ...
+% ИЗМЕНЕНИЕ: "Подробности" -> "Показать подробности"
+chkDebug = uicheckbox(gMore, Text = "Показать подробности", ...
     FontColor = COL.muted, ValueChangedFcn = @(~,~) toggleDebug());
 
 pnlDbg = uipanel(gMore, BorderType = "none", ...
@@ -166,6 +171,7 @@ pnlDbg = uipanel(gMore, BorderType = "none", ...
 gDbg = uigridlayout(pnlDbg, [4 1], RowHeight = {104, 32, 18, '1x'}, ...
     RowSpacing = 6, Padding = 0, BackgroundColor = COL.back);
 
+% ИЗМЕНЕНИЕ: заголовки таблицы
 tbl = uitable(gDbg, Data = emptyTop(), ColumnWidth = {'1x', 58});
 lblGen = uilabel(gDbg, Text = "", FontSize = 10, ...
     FontColor = COL.muted, WordWrap = "on");
@@ -179,14 +185,16 @@ axPrev.Toolbar.Visible = "off";
 colormap(axPrev, gray(256));
 
 % --- сохранение ---------------------------------------------------------
-pnlSave = uipanel(right, Title = "Тестовый набор", ...
+% ИЗМЕНЕНИЕ: заголовок панели
+pnlSave = uipanel(right, Title = "Сохранить в коллекцию", ...
     BorderType = "line", BorderColor = COL.line, ...
     BackgroundColor = COL.panel, ForegroundColor = COL.muted);
 gSave = uigridlayout(pnlSave, [2 2], RowHeight = {30, 20}, ...
     ColumnWidth = {'1x', 108}, Padding = 12, ColumnSpacing = 8, ...
     BackgroundColor = COL.panel);
 ddClass = uidropdown(gSave, Items = names, Value = names(1));
-uibutton(gSave, Text = "Сохранить", ButtonPushedFcn = @(~,~) doSave());
+% ИЗМЕНЕНИЕ: "Сохранить" -> "Сохранить в коллекцию"
+uibutton(gSave, Text = "Сохранить в коллекцию", ButtonPushedFcn = @(~,~) doSave());
 lblSaved = uilabel(gSave, Text = "", FontSize = 11, FontColor = COL.muted);
 lblSaved.Layout.Row = 2; lblSaved.Layout.Column = [1 2];
 
@@ -422,14 +430,16 @@ showPreview(zeros(cfg.img.size, "uint8"));
         if ~R.ok
             lblAns.Text = "Не распознано";
             lblAns.FontColor = COL.bad;
-            lblConf.Text = "линия не годится";
+            % ИЗМЕНЕНИЕ: "линия не годится" -> "Рисунок не подходит для распознавания"
+            lblConf.Text = "Рисунок не подходит для распознавания";
             tbl.Data = emptyTop();
             return
         end
 
+        % ИЗМЕНЕНИЕ: заголовки таблицы
         tbl.Data = table(R.top.("название"), ...
             compose("%.0f", R.top.("вероятность %")), ...
-            VariableNames = ["вариант","%"]);
+            VariableNames = ["Вариант","Вероятность, %"]);
 
         % А здесь сеть отработала и класс назвала, только уверенность ниже
         % порога. Рисунок нормальный, просто похож сразу на несколько
@@ -439,7 +449,8 @@ showPreview(zeros(cfg.img.size, "uint8"));
         % Само название не показывается намеренно: запомнится оно, а не
         % оговорка про неуверенность.
         if ~R.reliable
-            lblAns.Text = "Неуверенный ответ";
+            % ИЗМЕНЕНИЕ: "Неуверенный ответ" -> "Низкая уверенность"
+            lblAns.Text = "Низкая уверенность";
             lblAns.FontColor = COL.warn;
             lblConf.Text = "";
             return
@@ -482,23 +493,22 @@ showPreview(zeros(cfg.img.size, "uint8"));
 
             if Fref.ok
                 shown = Fref;
-                % Проценты отклонения нужны при отладке, а не человеку,
-                % который просто нарисовал кривую. Ему хватает того, точно
-                % легла или приблизительно.
+                % ИЗМЕНЕНИЕ: "приблизительно"/"точно" -> "Подогнано приблизительно"/"Подогнано точно"
                 if Fref.status == "warn"
-                    lblFitInfo.Text = "приблизительно";
+                    lblFitInfo.Text = "Подогнано приблизительно";
                     lblFitInfo.FontColor = COL.warn;
                 else
-                    lblFitInfo.Text = "точно";
+                    lblFitInfo.Text = "Подогнано точно";
                     lblFitInfo.FontColor = COL.good;
                 end
                 if chkDebug.Value
+                    % ИЗМЕНЕНИЕ: "отклонение" -> "среднее отклонение"
                     lblFitInfo.Text = lblFitInfo.Text + ...
-                        sprintf(" · отклонение %.1f%%", 100*Fref.residual);
+                        sprintf(" · среднее отклонение %.1f%%", 100*Fref.residual);
                 end
             elseif Fnet.ok
                 shown = Fnet;
-                lblFitInfo.Text = "приблизительно";
+                lblFitInfo.Text = "Подогнано приблизительно";
                 lblFitInfo.FontColor = COL.warn;
             end
         elseif Fnet.ok
@@ -612,7 +622,8 @@ showPreview(zeros(cfg.img.size, "uint8"));
     end
 
     function T = emptyTop()
+        % ИЗМЕНЕНИЕ: заголовки таблицы
         T = table(strings(0,1), strings(0,1), ...
-            VariableNames = ["вариант","%"]);
+            VariableNames = ["Вариант","Вероятность, %"]);
     end
 end
