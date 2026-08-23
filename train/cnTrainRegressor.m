@@ -200,12 +200,38 @@ model = struct( ...
     "maeTest",    mae, ...
     "trainedAt",  datetime("now"), ...
     "trainTime",  trainTime, ...
-    "info",       info);
+    "history",    trainHistory(info));
 
 save(modelFile, "model", "-v7.3");
 fprintf("Сохранено: %s\n", modelFile);
 
 if nargout == 0
     clear model
+end
+end
+
+
+% =======================================================================
+function h = trainHistory(info)
+%TRAINHISTORY  Кривые обучения в виде обычных чисел.
+%
+%   Объект deep.TrainingInfo сохранять в модель нельзя. Он тянет за собой
+%   окно прогресса обучения: при каждом чтении файла MATLAB воссоздаёт его
+%   интерфейс, и поверх приложения выскакивает график — на ровном месте,
+%   просто оттого, что регрессор загрузили для распознавания.
+%
+%   Оставляем то, ради чего info вообще хранилась: потери по итерациям.
+
+h = struct("trainLoss", [], "valLoss", [], "iteration", []);
+
+try
+    h.trainLoss = double(info.TrainingHistory.Loss);
+    h.iteration = double(info.TrainingHistory.Iteration);
+    if ~isempty(info.ValidationHistory)
+        h.valLoss = double(info.ValidationHistory.Loss);
+    end
+catch
+    % Состав полей у разных версий MATLAB разный, и терять из-за этого
+    % обученную сеть незачем: история — приятное дополнение, не более.
 end
 end

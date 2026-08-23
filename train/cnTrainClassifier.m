@@ -223,7 +223,12 @@ end
 model = struct();
 model.net        = net;
 model.classKeys  = classKeys;
-model.info       = info;
+% Объект deep.TrainingInfo сохранять нельзя: он воскрешает окно прогресса
+% обучения при каждом чтении модели. Оставляем только числа.
+model.history    = struct( ...
+    "trainLoss", double(info.TrainingHistory.Loss), ...
+    "iteration", double(info.TrainingHistory.Iteration), ...
+    "valLoss",   double(info.ValidationHistory.Loss));
 model.accVal     = accVal;
 model.accTest    = accTest;
 model.perClass   = perClass;
