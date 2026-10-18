@@ -1,0 +1,11 @@
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Linq;
+global using CurveNet.Web.Common;
+global using CurveNet.Web.Config;
+global using CurveNet.Web.Curves;
+global using CurveNet.Web.Dto;
+global using CurveNet.Web.Geometry;
+global using CurveNet.Web.Equations;
+global using CurveNet.Web.Services;

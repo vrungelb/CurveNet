@@ -27,7 +27,8 @@ if nRows == 0
     error("cnTrainRegressor:noData", "Нет примеров класса «%s».", className);
 end
 
-if ~all(ismember(["originX", "originY", "normScale"], string(Tclass.Properties.VariableNames)))
+if ~all(ismember(["originX", "originY", "normScale"], string(Tclass.Properties.VariableNames))) ...
+        || any(isnan(Tclass.normScale))
     fprintf("Вычисление пространственных координат для %d примеров...\n", nRows);
     ox     = zeros(nRows, 1);
     oy     = zeros(nRows, 1);
@@ -84,7 +85,7 @@ trainTime = toc(t0);
 
 model = struct("className", className, "net", net, "targetCols", targetCols, ...
     "normMin", normMin, "normMax", normMax, "info", info, "options", opts, "trainTime", trainTime, ...
-    "logGrowth", logGrowth);
+    "logGrowth", logGrowth, "unitAniso", enc.unitAniso);
 if ~exist(cfg.paths.models, "dir"); mkdir(cfg.paths.models); end
 modelFile = fullfile(cfg.paths.models, sprintf("regress_%s.mat", className));
 save(modelFile, "model");

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CurveNet — распознавание кривых</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="styles.css?v=4" />
+  <script defer id="katexScript" src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Левая панель: интерактивный координатный холст -->
+    <section class="canvas-panel">
+      <div class="canvas-header">
+        <div class="canvas-legend">
+          <span class="legend-item"><i class="dot dot-user"></i> Штрихи пользователя</span>
+          <span class="legend-item"><i class="dot dot-ideal"></i> Восстановленная кривая</span>
+        </div>
+        <div class="header-right">
+          <span id="coordReadout" class="coord-readout">x: 0.00, y: 0.00</span>
+          <button id="btnTheme" class="btn-theme" type="button" title="Переключить тему">
+            <span id="themeIcon" aria-hidden="true">🌙</span>
+            <span id="themeText">Тёмная</span>
+          </button>
+        </div>
+      </div>
+      <div class="canvas-stage" id="canvasStage">
+        <canvas id="drawCanvas"></canvas>
+      </div>
+    </section>
+
+    <!-- Правая панель управления и результатов -->
+    <aside class="side-panel">
+      <button id="btnRecognize" class="btn btn-primary" type="button">
+        Распознать
+      </button>
+
+      <div class="btn-row">
+        <button id="btnUndo" class="btn btn-secondary" type="button" title="Ctrl+Z">
+          Отменить штрих
+        </button>
+        <button id="btnClear" class="btn btn-secondary" type="button" title="Esc">
+          Очистить
+        </button>
+      </div>
+
+      <!-- Панель «Ответ» -->
+      <div class="card">
+        <div class="card-title">Ответ</div>
+        <div id="lblAns" class="ans-title">—</div>
+        <div id="lblConf" class="ans-conf"></div>
+        <div id="lblStatus" class="ans-status"></div>
+      </div>
+
+      <!-- Таблица кандидатов -->
+      <div class="card card-compact">
+        <table class="top-table">
+          <thead>
+            <tr>
+              <th>Кандидаты</th>
+              <th class="col-pct">%</th>
+            </tr>
+          </thead>
+          <tbody id="topTableBody">
+            <tr class="empty-row">
+              <td colspan="2">Нарисуйте кривую и нажмите «Распознать»</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Превью входа сети 160x160 -->
+      <div class="preview-box">
+        <div class="section-label">Вход сети (160×160):</div>
+        <canvas id="previewCanvas" width="160" height="160"></canvas>
+      </div>
+
+      <!-- Панель «Тестовый набор» -->
+      <div class="card">
+        <div class="card-title">Тестовый набор</div>
+        <div class="save-row">
+          <select id="ddSaveClass" class="select-input"></select>
+          <button id="btnSave" class="btn btn-secondary" type="button">Сохранить</button>
+        </div>
+        <div id="lblSaved" class="saved-status"></div>
+      </div>
+
+      <!-- Панель «Уравнение» (LaTeX 3 знака + копирование точного уравнения) -->
+      <div class="card eq-card">
+        <div class="card-header-row">
+          <span class="card-title">Уравнение</span>
+          <div class="copy-group">
+            <button id="btnCopyEq" class="btn-link" type="button">Скопировать</button>
+            <span class="info-badge" tabindex="0" aria-label="Будет скопировано точное уравнение">
+              i
+              <span class="info-tooltip">Будет скопировано точное уравнение</span>
+            </span>
+          </div>
+        </div>
+        <div id="eqLatexBox" class="eq-latex-box is-empty">
+          Здесь появится уравнение кривой...
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="app.js?v=4"></script>
+</body>
+</html>

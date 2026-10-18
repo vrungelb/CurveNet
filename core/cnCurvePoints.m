@@ -47,7 +47,7 @@ switch key
 
     case "logSpiral"
 
-        th  = linspace(0, 2*pi*prm.turns, nd).';
+        th  = linspace(-2*pi*prm.turns, 0, nd).';
         r   = exp(prm.growth*th);
         raw = {[r.*cos(th), r.*sin(th)]};
 

@@ -116,7 +116,7 @@ if isfield(R.params, "shear");  sh = R.params.shear;  end
 flip = isfield(R.params, "flip") && R.params.flip > 0.5;
 
 A_mat = cnAffineMatrix(R.params.angleDeg, aX, aY, sh, flip);
-X0 = ([R.params.originX, R.params.originY] - 0.5 - tf.offset) * tf.scale + tf.center;
+X0 = tf.toWorld([R.params.originX, R.params.originY]);
 k = R.params.normScale * tf.scale;
 
 R.idealPoints = [];

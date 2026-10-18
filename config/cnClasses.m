@@ -1,4 +1,4 @@
-%CNCLASSES Словарь классов: формулы, параметры, симметрии.
+%CNCLASSES Словарь классов.
 function out = cnClasses(sel)
 
 arguments

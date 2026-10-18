@@ -20,10 +20,10 @@ else
 end
 
 [strokes, pOrig] = cnHandDistort(strokes, rec, c.closed);
-strokes = cnStrokeBreak(strokes, rec, c.closed);
+strokes = cnLineBreak(strokes, rec, c.closed);
 
 [strokes, tf] = cnNormalize(strokes, rec);
-tf.origin    = (pOrig - tf.center) / tf.scale + 0.5 + tf.offset;
+tf.origin    = tf.toNorm(pOrig);
 tf.normScale = 1 / tf.scale;
 
 if doRaster

@@ -1,5 +1,5 @@
-%CNSTROKEBREAK  Незамыкание контура и отрывы пера.
-function out = cnStrokeBreak(strokes, rec, closed)
+%CNLINEBREAK  Незамыкание контура и отрывы пера.
+function out = cnLineBreak(strokes, rec, closed)
 
 arguments
     strokes cell
@@ -10,7 +10,7 @@ end
 need = ["openGap","nBreaks","seed"];
 missing = need(~isfield(rec, need));
 if ~isempty(missing)
-    error("cnStrokeBreak:missingFields", ...
+    error("cnLineBreak:missingFields", ...
         "В рецепте нет полей: %s.", join(missing, ", "));
 end
 

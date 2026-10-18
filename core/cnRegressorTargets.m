@@ -44,6 +44,14 @@ if ismember("flip", Tclass.Properties.VariableNames) && C.flipMode ~= "target"
     Tclass.flip(flipped) = 0;
 end
 
+unitAniso = C.regAffine && all(ismember(["anisoX", "anisoY"], targetCols));
+if unitAniso
+    cScale = sqrt(max(1e-8, double(Tclass.anisoX) .* double(Tclass.anisoY)));
+    Tclass.normScale = double(Tclass.normScale) .* cScale;
+    Tclass.anisoX    = double(Tclass.anisoX) ./ cScale;
+    Tclass.anisoY    = double(Tclass.anisoY) ./ cScale;
+end
+
 logGrowth = (C.key == "logSpiral");
 if logGrowth && ismember("growth", Tclass.Properties.VariableNames)
     Tclass.growth = log(max(1e-4, double(Tclass.growth)));
@@ -113,7 +121,8 @@ out = struct( ...
     "targetCols", targetCols, ...
     "normMin",    normMin, ...
     "normMax",    normMax, ...
-    "logGrowth",  logGrowth);
+    "logGrowth",  logGrowth, ...
+    "unitAniso",  unitAniso);
 end
 
 function params = decodeTargets(C, reg, predNorm, params)
@@ -137,6 +146,13 @@ predRaw(lim) = min(max(predRaw(lim), reg.normMin(lim)), reg.normMax(lim));
 
 for i = 1:numel(reg.targetCols)
     params.(reg.targetCols(i)) = predRaw(i);
+end
+
+if isfield(reg, "unitAniso") && reg.unitAniso ...
+        && isfield(params, "anisoX") && isfield(params, "anisoY")
+    cPred = sqrt(max(1e-8, params.anisoX * params.anisoY));
+    params.anisoX = params.anisoX / cPred;
+    params.anisoY = params.anisoY / cPred;
 end
 
 if isfield(params, "growth")

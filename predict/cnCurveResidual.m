@@ -16,7 +16,7 @@ tf = info.tf;
 nStrokes = numel(info.strokes);
 chunks = cell(2 * nStrokes - 1, 1);
 for i = 1:nStrokes
-    chunks{2*i - 1} = (info.strokes{i} - 0.5 - tf.offset) * tf.scale + tf.center;
+    chunks{2*i - 1} = tf.toWorld(info.strokes{i});
     if i < nStrokes
         chunks{2*i} = [NaN, NaN];
     end

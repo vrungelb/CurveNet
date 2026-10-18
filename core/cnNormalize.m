@@ -29,32 +29,30 @@ if ~isfinite(ext) || ext <= 0
         "Габаритная рамка вырождена: фигура схлопнулась в точку.");
 end
 
-fill  = 1 - 2*cfg.img.pad;
-scale = ext / fill;
-
-q = strokes(:);
-for i = 1:numel(q)
-    q{i} = (q{i} - c0) / scale + 0.5;
-end
-
-sj = 1;
-off = [0 0];
+fill = 1 - 2*cfg.img.pad;
+sj   = 1;
+off  = [0 0];
 if ~isempty(jitter)
     if isfield(jitter, "scaleJit"); sj = jitter.scaleJit; end
     if isfield(jitter, "offX") && isfield(jitter, "offY")
         off = [jitter.offX, jitter.offY];
     end
-    for i = 1:numel(q)
-        q{i} = (q{i} - 0.5) * sj + 0.5 + off;
-    end
 end
+scale = (ext / fill) / sj;
 
 tf = struct( ...
     "center",   c0, ...
     "extent",   ext, ...
     "pad",      cfg.img.pad, ...
-    "scale",    scale / sj, ...
+    "scale",    scale, ...
     "offset",   off, ...
     "boxMin",   lo, ...
-    "boxMax",   hi);
+    "boxMax",   hi, ...
+    "toNorm",   @(p) (p - c0) / scale + 0.5 + off, ...
+    "toWorld",  @(u) (u - 0.5 - off) * scale + c0);
+
+q = strokes(:);
+for i = 1:numel(q)
+    q{i} = tf.toNorm(q{i});
+end
 end

@@ -1,4 +1,4 @@
-%CNCONFIG  Единый центр настроек и путей проекта.
+%CNCONFIG  Центр настроек и путей проекта.
 function cfg = cnConfig()
 
 persistent CFG

@@ -72,7 +72,7 @@ lblStatus = uilabel(gAns, Text = "", WordWrap = "on", ...
     FontColor = [0.75 0.35 0.10], VerticalAlignment = "top", FontSize = 12);
 
 tbl = uitable(right, Data = table(strings(0,1), strings(0,1), ...
-    VariableNames = ["вариант","%"]), ColumnWidth = {'1x', 65}, ...
+    VariableNames = ["Кандидаты","%"]), ColumnWidth = {'1x', 65}, ...
     RowStriping = "off");
 
 uilabel(right, Text = "Вход сети (160×160):", ...
@@ -186,7 +186,7 @@ showPreview(zeros(cfg.img.size, "uint8"));
         lblAns.Text  = "—";
         lblAns.FontColor = [0.10 0.10 0.10];
         lblConf.Text = "";
-        tbl.Data = table(strings(0,1), strings(0,1), VariableNames = ["вариант","%"]);
+        tbl.Data = table(strings(0,1), strings(0,1), VariableNames = ["Кандидаты","%"]);
         lblStatus.Text = "";
         lblSaved.Text  = "";
         taEq.Value = {''};
@@ -233,7 +233,7 @@ showPreview(zeros(cfg.img.size, "uint8"));
         end
 
         tbl.Data = table(R.top.("название"), compose("%.1f", R.top.("вероятность")), ...
-            VariableNames = ["вариант","%"]);
+            VariableNames = ["Кандидаты","%"]);
 
         if R.class == "scribble"
             lblAns.FontColor = [0.75 0.25 0.10];

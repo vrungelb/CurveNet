@@ -1,30 +1,53 @@
-dataset/
-models/
-results/
-scratch/
-userTest/
+# Тяжёлые датасеты и результаты экспериментов
+/dataset/
+/results/
+/scratch/
+/userTest/
 project_structure.txt
 
-
+# Веса нейросетей и бинарные модели
+/models/
+*.onnx
 *.mat
+*.mex*
+*.p
+
+# Архивы и сжатые файлы
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
 *.png
 *.jpg
 *.jpeg
 *.fig
 
+# Сборка .NET и публикации
+**/bin/
+**/obj/
+**/publish/
+publish.zip
 
+# Секреты и профили развертывания
+*.PublishSettings
+*.pubxml.user
+
+# Служебные файлы MATLAB
 *.asv
 *.m~
 *.autosave
-*.mex*
-*.p
 slprj/
 codegen/
 matlab_crash_dump*
 
-
+# Служебные файлы ОС и IDE
 .DS_Store
 Thumbs.db
 Desktop.ini
-.vscode/
+.vs/
 .idea/
+.vscode/
+*.suo
+*.user
+*.log
